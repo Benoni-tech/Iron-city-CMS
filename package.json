@@ -1,0 +1,39 @@
+{
+  "name": "iron-city-church",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@tiptap/extension-character-count": "^2.7.0",
+    "@tiptap/extension-image": "^2.7.0",
+    "@tiptap/extension-link": "^2.7.0",
+    "@tiptap/extension-text-align": "^2.7.0",
+    "@tiptap/extension-underline": "^2.7.0",
+    "@tiptap/html": "^2.7.0",
+    "@tiptap/react": "^2.7.0",
+    "@tiptap/starter-kit": "^2.7.0",
+    "firebase": "^11.0.0",
+    "firebase-admin": "^12.0.0",
+    "lucide-react": "^1.24.0",
+    "next": "15.3.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "recharts": "^2.13.0",
+    "resend": "^4.0.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5"
+  }
+}

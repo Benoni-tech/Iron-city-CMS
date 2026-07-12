@@ -1,0 +1,273 @@
+@import url('https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Church palette */
+  --navy: #1a2744;
+  --navy-mid: #1e3a5f;
+  --gold: #c9a84c;
+  --gold-light: #e8d5a3;
+  --white: #ffffff;
+  --off-white: #f8f7f4;
+  --text: #1c1917;
+  --muted: #78716c;
+  --border: #e7e5e4;
+  --surface: #fafaf9;
+
+  /* Fonts — modern grotesque sans, no serif */
+  --font-display: "General Sans", Inter, system-ui, sans-serif;
+  --font-body: "General Sans", Inter, system-ui, sans-serif;
+  --font-ui: "Inter", system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    font-family: var(--font-ui);
+    color: var(--text);
+    background: var(--white);
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  ::selection {
+    background: var(--gold);
+    color: var(--navy);
+  }
+}
+
+/* ── Public reading typography ── */
+.prose-church {
+  font-family: var(--font-body);
+  font-size: 18px;
+  line-height: 1.8;
+  color: var(--text);
+}
+
+.prose-church p { margin-bottom: 1.4em; }
+.prose-church h2 { font-size: 1.5rem; margin-top: 2rem; margin-bottom: 0.75rem; }
+.prose-church h3 { font-size: 1.25rem; margin-top: 1.75rem; margin-bottom: 0.5rem; }
+.prose-church blockquote {
+  border-left: 3px solid var(--gold);
+  padding-left: 1.25rem;
+  font-style: italic;
+  color: var(--muted);
+  margin: 1.5rem 0;
+}
+.prose-church ul, .prose-church ol { padding-left: 1.5rem; margin-bottom: 1.4em; }
+.prose-church li { margin-bottom: 0.4em; }
+.prose-church a { color: var(--navy); text-decoration: underline; text-underline-offset: 3px; }
+
+/* ── Scroll reveal ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-delay-1 { transition-delay: 0.08s; }
+.reveal-delay-2 { transition-delay: 0.16s; }
+.reveal-delay-3 { transition-delay: 0.24s; }
+.reveal-delay-4 { transition-delay: 0.32s; }
+
+/* ── Animations ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up {
+  animation: fadeUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ── Floating pill nav ── */
+.pill-nav {
+  border-radius: 9999px;
+  transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+}
+
+/* ── Tab-style pill buttons (floating card) ── */
+.pill-tab {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 20px;
+  border-radius: 9999px;
+  transition: background 0.15s, color 0.15s;
+  color: var(--muted);
+}
+.pill-tab:hover { color: var(--navy); }
+.pill-tab.active {
+  background: var(--navy);
+  color: var(--white);
+}
+
+/* ── Admin UI ── */
+.admin-input {
+  width: 100%;
+  border: 1px solid var(--border);
+  padding: 9px 13px;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--text);
+  background: var(--white);
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.admin-input:focus { border-color: var(--navy); }
+
+.admin-btn-primary {
+  background: var(--navy);
+  color: var(--white);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 20px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.admin-btn-primary:hover { background: var(--navy-mid); }
+.admin-btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.admin-btn-secondary {
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.admin-btn-secondary:hover { border-color: var(--navy); }
+
+.admin-btn-gold {
+  background: var(--gold);
+  color: var(--navy);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 9px 20px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.admin-btn-gold:hover { background: #b8953e; }
+
+.admin-btn-danger {
+  background: transparent;
+  color: #dc2626;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s;
+  padding: 0;
+}
+.admin-btn-danger:hover { color: #b91c1c; }
+
+/* Status badges */
+.status-badge {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 9999px;
+}
+.status-active    { background: #dcfce7; color: #14532d; }
+.status-inactive  { background: #fef9c3; color: #713f12; }
+.status-draft     { background: #f1f5f9; color: #475569; }
+.status-published { background: #dcfce7; color: #14532d; }
+.status-new       { background: #dbeafe; color: #1e3a5f; }
+.status-read      { background: #f1f5f9; color: #475569; }
+.status-resolved  { background: #dcfce7; color: #14532d; }
+.status-transferred { background: #ede9fe; color: #4c1d95; }
+.status-deceased  { background: #f1f5f9; color: #78716c; }
+
+/* Category badges */
+.badge-lambs        { background: #fce7f3; color: #831843; }
+.badge-teens        { background: #ede9fe; color: #4c1d95; }
+.badge-youth        { background: #dbeafe; color: #1e3a5f; }
+.badge-congregation { background: #dcfce7; color: #14532d; }
+
+/* Form section header */
+.form-section-header {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--navy);
+  border-bottom: 2px solid var(--gold);
+  padding-bottom: 6px;
+  margin-bottom: 20px;
+  margin-top: 28px;
+}
+
+/* Nav link */
+.nav-link-pub {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--text);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.nav-link-pub:hover { color: var(--navy); }
+
+/* Admin sidebar link */
+.admin-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: #475569;
+  padding: 8px 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+.admin-nav-link:hover { background: #f1f5f9; color: var(--navy); }
+.admin-nav-link.active { background: #e8f0fe; color: var(--navy); font-weight: 600; }
+
+/* Attendance checkbox grid */
+.attendance-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.attendance-row:last-child { border-bottom: none; }
+
+/* Public hero overlay */
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(26, 39, 68, 0.55) 0%,
+    rgba(26, 39, 68, 0.75) 100%
+  );
+}
