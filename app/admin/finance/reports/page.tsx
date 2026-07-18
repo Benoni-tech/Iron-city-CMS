@@ -2,6 +2,7 @@ import { getFinancialPeriods } from "@/lib/firestore"
 import { buildFinanceChartData } from "@/lib/finance-reports"
 import { IncomeExpenditureChart } from "@/components/finance-chart"
 import CloseMonthButton from "@/components/close-month-button"
+import FinanceExportPanel from "@/components/finance-export-panel"
 
 export default async function FinanceReportsPage() {
   const periods = await getFinancialPeriods()
@@ -14,7 +15,10 @@ export default async function FinanceReportsPage() {
           <h1 className="font-display font-bold text-3xl text-[#1a2744]">Financial Reports</h1>
           <p className="text-sm text-stone-400 mt-1">Income vs expenditure over time</p>
         </div>
-        <CloseMonthButton />
+        <div className="flex items-start gap-4">
+          <FinanceExportPanel />
+          <CloseMonthButton />
+        </div>
       </div>
 
       <div className="bg-white border border-stone-200 rounded-xl p-6 mb-8">

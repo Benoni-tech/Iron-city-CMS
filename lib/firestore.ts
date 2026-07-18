@@ -17,6 +17,8 @@ import {
   getCountFromServer,
 } from "firebase/firestore"
 import { db } from "./firebase"
+import { generateSlug } from "./slug"
+import { DEFAULT_FINANCE_CATEGORIES } from "./finance-category-defaults"
 import type {
   Lamb,
   Teen,
@@ -30,6 +32,8 @@ import type {
   AttendanceRecord,
   FinancialRecord,
   FinancialPeriod,
+  FinanceCategory,
+  FinanceType,
   Programme,
   Sermon,
   BlogPost,
@@ -59,6 +63,46 @@ export async function getMemberCounts(): Promise<Record<MemberCategory, number>>
     teens: teens.data().count,
     youth: youth.data().count,
     congregation: congregation.data().count,
+  }
+}
+
+// Counts active members per category as of a cutoff date, so the dashboard
+// can compare "members now" vs "members as of last month" for a trend %.
+//
+// One caveat worth knowing: this uses `createdAt` (when the record was
+// added to the system) as the cutoff field, since that's what's available.
+// It measures growth in *recorded* members, not necessarily actual
+// join/baptism dates — if you track a separate membership date field
+// somewhere, swap `createdAt` below for that field instead.
+//
+// Note: combining a `where("memberStatus", "==", ...)` equality filter with
+// a `where("createdAt", "<=", ...)` range filter on a different field
+// requires a Firestore composite index. If it's missing, Firestore will
+// throw an error in your server logs with a direct link to create it —
+// just click that link once and it'll work from then on.
+export async function getMemberCountsAsOf(
+  cutoff: Date
+): Promise<Record<MemberCategory, number>> {
+  const cutoffTimestamp = Timestamp.fromDate(cutoff)
+  const categories: MemberCategory[] = ["lambs", "teens", "youth", "congregation"]
+
+  const counts = await Promise.all(
+    categories.map((category) =>
+      getCountFromServer(
+        query(
+          collection(db, category),
+          where("memberStatus", "==", "active"),
+          where("createdAt", "<=", cutoffTimestamp)
+        )
+      )
+    )
+  )
+
+  return {
+    lambs: counts[0].data().count,
+    teens: counts[1].data().count,
+    youth: counts[2].data().count,
+    congregation: counts[3].data().count,
   }
 }
 
@@ -502,6 +546,25 @@ export async function getFinancialRecordsByMonth(
   } as FinancialRecord))
 }
 
+export async function getFinancialRecordsByDateRange(
+  startDate: string,
+  endDate: string
+): Promise<FinancialRecord[]> {
+  const q = query(
+    collection(db, "financial_records"),
+    where("date", ">=", startDate),
+    where("date", "<=", endDate),
+    orderBy("date", "asc")
+  )
+  const snap = await getDocs(q)
+  return snap.docs.map((d) => ({
+    id: d.id,
+    ...d.data(),
+    createdAt: ts(d.data().createdAt),
+    updatedAt: ts(d.data().updatedAt),
+  } as FinancialRecord))
+}
+
 export async function createFinancialRecord(
   data: Omit<FinancialRecord, "id" | "createdAt" | "updatedAt">
 ): Promise<string> {
@@ -543,6 +606,66 @@ export async function saveFinancialPeriod(
 ): Promise<void> {
   const periodId = `${data.year}-${String(data.month).padStart(2, "0")}`
   await setDoc(doc(db, "financial_periods", periodId), data)
+}
+
+// ─────────────────────────────────────────────
+// FINANCE CATEGORIES
+// ─────────────────────────────────────────────
+
+async function ensureFinanceCategoriesSeeded(): Promise<void> {
+  const snap = await getDocs(collection(db, "finance_categories"))
+  if (!snap.empty) return
+
+  const batch = writeBatch(db)
+  for (const category of DEFAULT_FINANCE_CATEGORIES) {
+    batch.set(doc(db, "finance_categories", category.id), {
+      ...category,
+      createdAt: serverTimestamp(),
+    })
+  }
+  await batch.commit()
+}
+
+export async function getFinanceCategories(
+  type?: FinanceType,
+  activeOnly = true
+): Promise<FinanceCategory[]> {
+  await ensureFinanceCategoriesSeeded()
+
+  const constraints = []
+  if (type) constraints.push(where("type", "==", type))
+  if (activeOnly) constraints.push(where("active", "==", true))
+
+  const snap = await getDocs(query(collection(db, "finance_categories"), ...constraints))
+  const categories = snap.docs.map((d) => ({
+    id: d.id,
+    ...d.data(),
+    createdAt: ts(d.data().createdAt),
+  } as FinanceCategory))
+
+  return categories.sort((a, b) => a.name.localeCompare(b.name))
+}
+
+export async function createFinanceCategory(data: {
+  name: string
+  type: FinanceType
+  createdBy: string
+}): Promise<string> {
+  const id = generateSlug(data.name)
+  await setDoc(doc(db, "finance_categories", id), {
+    id,
+    name: data.name,
+    type: data.type,
+    isDefault: false,
+    active: true,
+    createdBy: data.createdBy,
+    createdAt: serverTimestamp(),
+  })
+  return id
+}
+
+export async function deactivateFinanceCategory(id: string): Promise<void> {
+  await updateDoc(doc(db, "finance_categories", id), { active: false })
 }
 
 // ─────────────────────────────────────────────

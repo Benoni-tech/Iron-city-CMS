@@ -27,21 +27,19 @@ export type ServiceType =
 
 export type FinanceType = "income" | "expenditure"
 
-export type IncomeCategory =
-  | "tithe"
-  | "offering"
-  | "special_collection"
-  | "building_fund"
-  | "missions"
-  | "other"
+export type PaymentMethod = "cash" | "mobile_money" | "bank_transfer" | "check"
 
-export type ExpenditureCategory =
-  | "utilities"
-  | "maintenance"
-  | "staff"
-  | "missions_support"
-  | "programmes"
-  | "other"
+// Finance category — stored in the `finance_categories` collection so
+// super admins can add new ones at runtime instead of a fixed union.
+export interface FinanceCategory {
+  id: string // slug, e.g. "preachers_salary" — matches FinancialRecord.category
+  name: string // display label, e.g. "Preacher's Salary"
+  type: FinanceType
+  isDefault: boolean
+  active: boolean // false = retired/legacy — hidden from create dropdowns, still resolvable for old records
+  createdAt: string
+  createdBy?: string
+}
 
 export type ProgrammeCategory =
   | "sunday_service"
@@ -192,10 +190,13 @@ export interface MemberAttendanceSummary {
 export interface FinancialRecord {
   id: string
   type: FinanceType
-  category: IncomeCategory | ExpenditureCategory
+  category: string // FinanceCategory.id
   amount: number
-  description: string
+  description: string // shown/labeled as "Notes" in the UI — required for new records
   date: string
+  paymentMethod?: PaymentMethod // optional only because pre-existing docs lack it; required for new writes
+  recipient?: string // expenditure only — who received the money
+  disbursedBy?: string // expenditure only — who handed the money over
   serviceSessionId?: string
   receiptUrl?: string
   recordedBy: string
@@ -212,8 +213,8 @@ export interface FinancialPeriod {
   totalIncome: number
   totalExpenditure: number
   netBalance: number
-  incomeBreakdown: Record<IncomeCategory, number>
-  expenditureBreakdown: Record<ExpenditureCategory, number>
+  incomeBreakdown: Record<string, number>
+  expenditureBreakdown: Record<string, number>
   closedAt: string
   closedBy: string
 }

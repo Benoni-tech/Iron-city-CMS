@@ -14,8 +14,8 @@ export default async function PeriodDetailPage({ params }: PageProps) {
 
   if (!period) notFound()
 
-  const incomeData = buildIncomeCategoryData(period)
-  const expenditureData = buildExpenditureCategoryData(period)
+  const incomeData = await buildIncomeCategoryData(period)
+  const expenditureData = await buildExpenditureCategoryData(period)
 
   return (
     <div className="p-8 max-w-5xl mx-auto">

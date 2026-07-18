@@ -1,11 +1,12 @@
 import Link from "next/link"
-import { getFinancialRecords, getFinancialPeriods } from "@/lib/firestore"
+import { getFinancialRecords, getFinancialPeriods, getFinanceCategories } from "@/lib/firestore"
 import { formatGHS } from "@/lib/finance-reports"
 
 export default async function FinanceOverviewPage() {
-  const [recentRecords, periods] = await Promise.all([
+  const [recentRecords, periods, allCategories] = await Promise.all([
     getFinancialRecords(undefined, 15),
     getFinancialPeriods(),
+    getFinanceCategories(undefined, false),
   ])
 
   const now = new Date()
@@ -22,19 +23,9 @@ export default async function FinanceOverviewPage() {
     .reduce((sum, r) => sum + r.amount, 0)
   const netBalance = monthlyIncome - monthlyExpenditure
 
-  const categoryLabels: Record<string, string> = {
-    tithe: "Tithe",
-    offering: "Offering",
-    special_collection: "Special Collection",
-    building_fund: "Building Fund",
-    missions: "Missions",
-    utilities: "Utilities",
-    maintenance: "Maintenance",
-    staff: "Staff",
-    missions_support: "Missions Support",
-    programmes: "Programmes",
-    other: "Other",
-  }
+  const categoryLabels: Record<string, string> = Object.fromEntries(
+    allCategories.map((c) => [c.id, c.name])
+  )
 
   // --- Derived data for donut chart: expenditure by category, this month ---
   const expenseByCategory: Record<string, number> = {}

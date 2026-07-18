@@ -1,29 +1,5 @@
-import type {
-  FinancialRecord,
-  FinancialPeriod,
-  IncomeCategory,
-  ExpenditureCategory,
-  FinanceChartPoint,
-} from "@/types"
-import { getFinancialRecordsByMonth, saveFinancialPeriod } from "./firestore"
-
-const INCOME_CATEGORIES: IncomeCategory[] = [
-  "tithe",
-  "offering",
-  "special_collection",
-  "building_fund",
-  "missions",
-  "other",
-]
-
-const EXPENDITURE_CATEGORIES: ExpenditureCategory[] = [
-  "utilities",
-  "maintenance",
-  "staff",
-  "missions_support",
-  "programmes",
-  "other",
-]
+import type { FinancialPeriod, FinanceChartPoint } from "@/types"
+import { getFinancialRecordsByMonth, saveFinancialPeriod, getFinanceCategories } from "./firestore"
 
 export async function generateMonthlyPeriod(
   year: number,
@@ -32,13 +8,8 @@ export async function generateMonthlyPeriod(
 ): Promise<FinancialPeriod> {
   const records = await getFinancialRecordsByMonth(year, month)
 
-  const incomeBreakdown = Object.fromEntries(
-    INCOME_CATEGORIES.map((cat) => [cat, 0])
-  ) as Record<IncomeCategory, number>
-
-  const expenditureBreakdown = Object.fromEntries(
-    EXPENDITURE_CATEGORIES.map((cat) => [cat, 0])
-  ) as Record<ExpenditureCategory, number>
+  const incomeBreakdown: Record<string, number> = {}
+  const expenditureBreakdown: Record<string, number> = {}
 
   let totalIncome = 0
   let totalExpenditure = 0
@@ -46,12 +17,10 @@ export async function generateMonthlyPeriod(
   for (const record of records) {
     if (record.type === "income") {
       totalIncome += record.amount
-      const cat = record.category as IncomeCategory
-      incomeBreakdown[cat] = (incomeBreakdown[cat] ?? 0) + record.amount
+      incomeBreakdown[record.category] = (incomeBreakdown[record.category] ?? 0) + record.amount
     } else {
       totalExpenditure += record.amount
-      const cat = record.category as ExpenditureCategory
-      expenditureBreakdown[cat] = (expenditureBreakdown[cat] ?? 0) + record.amount
+      expenditureBreakdown[record.category] = (expenditureBreakdown[record.category] ?? 0) + record.amount
     }
   }
 
@@ -91,42 +60,31 @@ export function buildFinanceChartData(
     }))
 }
 
-export function buildIncomeCategoryData(
-  period: FinancialPeriod
-): { name: string; value: number }[] {
-  const labels: Record<IncomeCategory, string> = {
-    tithe: "Tithe",
-    offering: "Offering",
-    special_collection: "Special Collection",
-    building_fund: "Building Fund",
-    missions: "Missions",
-    other: "Other",
-  }
-  return INCOME_CATEGORIES
-    .filter((cat) => period.incomeBreakdown[cat] > 0)
-    .map((cat) => ({
-      name: labels[cat],
-      value: period.incomeBreakdown[cat],
+async function buildCategoryData(
+  breakdown: Record<string, number>,
+  type: "income" | "expenditure"
+): Promise<{ name: string; value: number }[]> {
+  const categories = await getFinanceCategories(type, false)
+  const labels = new Map(categories.map((c) => [c.id, c.name]))
+
+  return Object.entries(breakdown)
+    .filter(([, value]) => value > 0)
+    .map(([id, value]) => ({
+      name: labels.get(id) ?? id,
+      value,
     }))
 }
 
-export function buildExpenditureCategoryData(
+export async function buildIncomeCategoryData(
   period: FinancialPeriod
-): { name: string; value: number }[] {
-  const labels: Record<ExpenditureCategory, string> = {
-    utilities: "Utilities",
-    maintenance: "Maintenance",
-    staff: "Staff",
-    missions_support: "Missions Support",
-    programmes: "Programmes",
-    other: "Other",
-  }
-  return EXPENDITURE_CATEGORIES
-    .filter((cat) => period.expenditureBreakdown[cat] > 0)
-    .map((cat) => ({
-      name: labels[cat],
-      value: period.expenditureBreakdown[cat],
-    }))
+): Promise<{ name: string; value: number }[]> {
+  return buildCategoryData(period.incomeBreakdown, "income")
+}
+
+export async function buildExpenditureCategoryData(
+  period: FinancialPeriod
+): Promise<{ name: string; value: number }[]> {
+  return buildCategoryData(period.expenditureBreakdown, "expenditure")
 }
 
 export function formatGHS(amount: number): string {

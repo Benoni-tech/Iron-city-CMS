@@ -3,14 +3,29 @@ import { z } from "zod"
 import { requireSuperAdmin } from "@/lib/auth"
 import { createFinancialRecord, getFinancialRecords } from "@/lib/firestore"
 
-const schema = z.object({
+export const financialRecordSchema = z.object({
   type: z.enum(["income", "expenditure"]),
   category: z.string().min(1),
   amount: z.number().positive(),
-  description: z.string().default(""),
+  description: z.string().trim().min(10, "Notes must be at least 10 characters"),
   date: z.string().min(1),
+  paymentMethod: z.enum(["cash", "mobile_money", "bank_transfer", "check"]),
   serviceSessionId: z.string().optional(),
+  recipient: z.string().trim().optional(),
+  disbursedBy: z.string().trim().optional(),
 })
+
+const schema = financialRecordSchema
+  .superRefine((data, ctx) => {
+    if (data.type === "expenditure") {
+      if (!data.recipient) {
+        ctx.addIssue({ code: "custom", path: ["recipient"], message: "Recipient is required" })
+      }
+      if (!data.disbursedBy) {
+        ctx.addIssue({ code: "custom", path: ["disbursedBy"], message: "Disbursed by is required" })
+      }
+    }
+  })
 
 export async function GET() {
   try { await requireSuperAdmin() } catch { return NextResponse.json({ error: "Unauthorized" }, { status: 403 }) }
