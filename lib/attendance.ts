@@ -1,11 +1,4 @@
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  orderBy,
-} from "firebase/firestore"
-import { db } from "./firebase"
+import { adminDb } from "./firebase-admin"
 import type { MemberCategory, MemberAttendanceSummary } from "@/types"
 import { getLambs, getTeens, getYouth, getCongregation } from "./firestore"
 
@@ -17,13 +10,12 @@ async function getRecentSundaySessionIds(weeksBack: number): Promise<string[]> {
   cutoff.setDate(cutoff.getDate() - weeksBack * 7)
   const cutoffStr = cutoff.toISOString().slice(0, 10)
 
-  const q = query(
-    collection(db, "service_sessions"),
-    where("serviceType", "==", "sunday_morning"),
-    where("date", ">=", cutoffStr),
-    orderBy("date", "desc")
-  )
-  const snap = await getDocs(q)
+  const snap = await adminDb
+    .collection("service_sessions")
+    .where("serviceType", "==", "sunday_morning")
+    .where("date", ">=", cutoffStr)
+    .orderBy("date", "desc")
+    .get()
   return snap.docs.map((d) => d.id)
 }
 
@@ -36,13 +28,12 @@ async function getPresentMemberIds(
   if (sessionIds.length === 0) return presentIds
 
   for (const sessionId of sessionIds) {
-    const q = query(
-      collection(db, "attendance_records"),
-      where("sessionId", "==", sessionId),
-      where("memberCategory", "==", category),
-      where("present", "==", true)
-    )
-    const snap = await getDocs(q)
+    const snap = await adminDb
+      .collection("attendance_records")
+      .where("sessionId", "==", sessionId)
+      .where("memberCategory", "==", category)
+      .where("present", "==", true)
+      .get()
     snap.docs.forEach((d) => presentIds.add(d.data().memberId))
   }
 
@@ -54,14 +45,13 @@ async function getMemberLastSeen(
   memberId: string,
   category: MemberCategory
 ): Promise<string | null> {
-  const q = query(
-    collection(db, "attendance_records"),
-    where("memberId", "==", memberId),
-    where("memberCategory", "==", category),
-    where("present", "==", true),
-    orderBy("markedAt", "desc")
-  )
-  const snap = await getDocs(q)
+  const snap = await adminDb
+    .collection("attendance_records")
+    .where("memberId", "==", memberId)
+    .where("memberCategory", "==", category)
+    .where("present", "==", true)
+    .orderBy("markedAt", "desc")
+    .get()
   if (snap.empty) return null
   const ts = snap.docs[0].data().markedAt
   if (!ts) return null
@@ -78,24 +68,21 @@ async function getMonthlyCount(
     .toISOString()
     .slice(0, 10)
 
-  const sundaySessionsSnap = await getDocs(
-    query(
-      collection(db, "service_sessions"),
-      where("serviceType", "==", "sunday_morning"),
-      where("date", ">=", startOfMonth)
-    )
-  )
+  const sundaySessionsSnap = await adminDb
+    .collection("service_sessions")
+    .where("serviceType", "==", "sunday_morning")
+    .where("date", ">=", startOfMonth)
+    .get()
   const sessionIds = sundaySessionsSnap.docs.map((d) => d.id)
   if (sessionIds.length === 0) return 0
 
-  const q = query(
-    collection(db, "attendance_records"),
-    where("memberId", "==", memberId),
-    where("memberCategory", "==", category),
-    where("present", "==", true),
-    where("sessionId", "in", sessionIds.slice(0, 10))
-  )
-  const snap = await getDocs(q)
+  const snap = await adminDb
+    .collection("attendance_records")
+    .where("memberId", "==", memberId)
+    .where("memberCategory", "==", category)
+    .where("present", "==", true)
+    .where("sessionId", "in", sessionIds.slice(0, 10))
+    .get()
   return snap.size
 }
 

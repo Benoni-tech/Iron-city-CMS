@@ -1,19 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
-import { z } from "zod"
 import { requireSuperAdmin } from "@/lib/auth"
 import { createFinancialRecord, getFinancialRecords } from "@/lib/firestore"
-
-export const financialRecordSchema = z.object({
-  type: z.enum(["income", "expenditure"]),
-  category: z.string().min(1),
-  amount: z.number().positive(),
-  description: z.string().trim().min(10, "Notes must be at least 10 characters"),
-  date: z.string().min(1),
-  paymentMethod: z.enum(["cash", "mobile_money", "bank_transfer", "check"]),
-  serviceSessionId: z.string().optional(),
-  recipient: z.string().trim().optional(),
-  disbursedBy: z.string().trim().optional(),
-})
+import { financialRecordSchema } from "@/lib/finance-schema"
 
 const schema = financialRecordSchema
   .superRefine((data, ctx) => {

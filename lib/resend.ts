@@ -1,7 +1,5 @@
 import { Resend } from "resend"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 interface ContactParams {
   name: string
   email: string
@@ -10,6 +8,10 @@ interface ContactParams {
 }
 
 export async function sendContactNotification(data: ContactParams): Promise<void> {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error("Contact form is not configured yet (RESEND_API_KEY is not set)")
+  }
+  const resend = new Resend(process.env.RESEND_API_KEY)
   const churchEmail = process.env.CHURCH_EMAIL ?? "church@ironcitychurchofchrist.org"
 
   const { error } = await resend.emails.send({

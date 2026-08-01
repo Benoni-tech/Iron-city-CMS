@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireSuperAdmin } from "@/lib/auth"
 import { updateFinancialRecord, deleteFinancialRecord } from "@/lib/firestore"
-import { financialRecordSchema } from "../route"
+import { financialRecordSchema } from "@/lib/finance-schema"
 
 interface Params { params: Promise<{ id: string }> }
 

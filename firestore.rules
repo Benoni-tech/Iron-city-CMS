@@ -1,0 +1,19 @@
+rules_version = '2';
+
+// All Firestore access in this app happens server-side, through the Next.js
+// server, using the Firebase Admin SDK (see lib/firebase-admin.ts). The
+// Admin SDK authenticates with a service account and bypasses these rules
+// entirely — so no legitimate traffic ever reaches Firestore through this
+// client-facing surface. Authorization (who can read/write what) is
+// enforced in application code via lib/auth.ts (requireAuth /
+// requireContributor / requireSuperAdmin), not here.
+//
+// Denying everything here closes direct client/REST/mobile-SDK access to
+// the database, which is what "Test Mode" left wide open.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

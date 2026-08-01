@@ -1,5 +1,7 @@
-import type { FinancialPeriod, FinanceChartPoint } from "@/types"
+import type { FinancialPeriod } from "@/types"
 import { getFinancialRecordsByMonth, saveFinancialPeriod, getFinanceCategories } from "./firestore"
+
+export { buildFinanceChartData, formatGHS } from "./finance-format"
 
 export async function generateMonthlyPeriod(
   year: number,
@@ -41,25 +43,6 @@ export async function generateMonthlyPeriod(
   return period
 }
 
-export function buildFinanceChartData(
-  periods: FinancialPeriod[]
-): FinanceChartPoint[] {
-  const monthNames = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-  ]
-
-  return periods
-    .slice()
-    .sort((a, b) => a.year !== b.year ? a.year - b.year : a.month - b.month)
-    .map((p) => ({
-      label: `${monthNames[p.month - 1]} ${p.year}`,
-      income: p.totalIncome,
-      expenditure: p.totalExpenditure,
-      net: p.netBalance,
-    }))
-}
-
 async function buildCategoryData(
   breakdown: Record<string, number>,
   type: "income" | "expenditure"
@@ -85,12 +68,4 @@ export async function buildExpenditureCategoryData(
   period: FinancialPeriod
 ): Promise<{ name: string; value: number }[]> {
   return buildCategoryData(period.expenditureBreakdown, "expenditure")
-}
-
-export function formatGHS(amount: number): string {
-  return new Intl.NumberFormat("en-GH", {
-    style: "currency",
-    currency: "GHS",
-    minimumFractionDigits: 2,
-  }).format(amount)
 }

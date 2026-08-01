@@ -14,7 +14,7 @@ import {
   Legend,
 } from "recharts"
 import type { FinanceChartPoint } from "@/types"
-import { formatGHS } from "@/lib/finance-reports"
+import { formatGHS } from "@/lib/finance-format"
 
 const PIE_COLORS = [
   "#1a2744", "#c9a84c", "#2563eb", "#16a34a", "#dc2626", "#7c3aed",
