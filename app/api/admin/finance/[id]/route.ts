@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
-import { requireSuperAdmin } from "@/lib/auth"
+import { requireTenantSuperAdmin } from "@/lib/auth"
 import { updateFinancialRecord, deleteFinancialRecord } from "@/lib/firestore"
 import { financialRecordSchema } from "@/lib/finance-schema"
 
 interface Params { params: Promise<{ id: string }> }
 
 export async function PATCH(req: NextRequest, { params }: Params) {
-  try { await requireSuperAdmin() } catch { return NextResponse.json({ error: "Unauthorized" }, { status: 403 }) }
+  let user
+  try { user = await requireTenantSuperAdmin() } catch { return NextResponse.json({ error: "Unauthorized" }, { status: 403 }) }
   const { id } = await params
 
   let body: unknown
@@ -17,13 +18,14 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: "Validation failed", issues: result.error.flatten().fieldErrors }, { status: 422 })
   }
 
-  await updateFinancialRecord(id, result.data)
+  await updateFinancialRecord(user.tenantId, id, result.data)
   return NextResponse.json({ success: true })
 }
 
 export async function DELETE(_req: NextRequest, { params }: Params) {
-  try { await requireSuperAdmin() } catch { return NextResponse.json({ error: "Unauthorized" }, { status: 403 }) }
+  let user
+  try { user = await requireTenantSuperAdmin() } catch { return NextResponse.json({ error: "Unauthorized" }, { status: 403 }) }
   const { id } = await params
-  await deleteFinancialRecord(id)
+  await deleteFinancialRecord(user.tenantId, id)
   return NextResponse.json({ success: true })
 }

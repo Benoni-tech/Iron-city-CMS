@@ -6,9 +6,7 @@ import { usePathname } from "next/navigation"
 
 const links = [
   { href: "/", label: "Home" },
-  { href: "/about", label: "About" },
-  { href: "/sermons", label: "Sermons" },
-  { href: "/events", label: "Events" },
+  { href: "/directory", label: "Directory" },
   { href: "/contact", label: "Contact" },
 ]
 
@@ -42,13 +40,10 @@ export default function Nav() {
           }`}
         >
           <span className="w-8 h-8 rounded-full bg-[#c9a84c] flex items-center justify-center text-[#1a2744] text-xs font-bold">
-            IC
+            CP
           </span>
           <span>
-            Iron City
-            <span className="hidden sm:inline font-ui font-normal text-[10px] tracking-[0.18em] uppercase opacity-70 ml-1.5">
-              Church of Christ
-            </span>
+            Church Platform
           </span>
         </Link>
 
@@ -75,10 +70,10 @@ export default function Nav() {
 
         <div className="flex items-center gap-3">
           <Link
-            href="/contact"
+            href="/#get-started"
             className="hidden md:inline-flex bg-[#c9a84c] hover:bg-[#b8953e] text-[#1a2744] font-semibold text-sm px-5 py-2.5 rounded-full transition-colors"
           >
-            Visit Us
+            Get Started
           </Link>
 
           <button
@@ -108,11 +103,11 @@ export default function Nav() {
             ))}
           </ul>
           <Link
-            href="/contact"
+            href="/#get-started"
             onClick={() => setOpen(false)}
             className="mt-4 block text-center bg-[#c9a84c] text-[#1a2744] font-semibold text-sm px-5 py-3 rounded-full"
           >
-            Visit Us
+            Get Started
           </Link>
         </div>
       )}

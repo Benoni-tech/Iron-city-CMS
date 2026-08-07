@@ -1,9 +1,11 @@
 import Link from "next/link"
 import { getServiceSessions } from "@/lib/firestore"
+import { getTenantSession } from "@/lib/auth"
 import { SERVICE_TYPE_LABELS } from "@/types"
 
 export default async function AttendancePage() {
-  const sessions = await getServiceSessions(30)
+  const { tenantId } = await getTenantSession()
+  const sessions = await getServiceSessions(tenantId, 30)
 
   return (
     <div className="p-8 max-w-5xl mx-auto">

@@ -1,12 +1,14 @@
 import { notFound } from "next/navigation"
 import LambForm from "@/components/member-form-lambs"
 import { getLambById } from "@/lib/firestore"
+import { getTenantSession } from "@/lib/auth"
 
 interface PageProps { params: Promise<{ id: string }> }
 
 export default async function EditLambPage({ params }: PageProps) {
+  const { tenantId } = await getTenantSession()
   const { id } = await params
-  const lamb = await getLambById(id)
+  const lamb = await getLambById(tenantId, id)
   if (!lamb) notFound()
 
   return (

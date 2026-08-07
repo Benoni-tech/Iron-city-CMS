@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
-import { requireSuperAdmin } from "@/lib/auth"
+import { requireTenantSuperAdmin } from "@/lib/auth"
 import { adminAuth } from "@/lib/firebase-admin"
 import type { UserRole } from "@/types"
 
 export async function POST(req: NextRequest) {
-  try { await requireSuperAdmin() } catch {
+  let admin
+  try { admin = await requireTenantSuperAdmin() } catch {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
   }
 
@@ -26,7 +27,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const userRecord = await adminAuth.createUser({ email, password })
-    await adminAuth.setCustomUserClaims(userRecord.uid, { role })
+    await adminAuth.setCustomUserClaims(userRecord.uid, { role, tenantId: admin.tenantId })
     return NextResponse.json({ uid: userRecord.uid }, { status: 201 })
   } catch (err) {
     const firebaseErr = err as { code?: string; message?: string }

@@ -4,11 +4,12 @@ import { getFinancialRecordsByMonth, saveFinancialPeriod, getFinanceCategories }
 export { buildFinanceChartData, formatGHS } from "./finance-format"
 
 export async function generateMonthlyPeriod(
+  tenantId: string,
   year: number,
   month: number,
   closedBy: string
 ): Promise<FinancialPeriod> {
-  const records = await getFinancialRecordsByMonth(year, month)
+  const records = await getFinancialRecordsByMonth(tenantId, year, month)
 
   const incomeBreakdown: Record<string, number> = {}
   const expenditureBreakdown: Record<string, number> = {}
@@ -39,15 +40,16 @@ export async function generateMonthlyPeriod(
     closedBy,
   }
 
-  await saveFinancialPeriod(period)
+  await saveFinancialPeriod(tenantId, period)
   return period
 }
 
 async function buildCategoryData(
+  tenantId: string,
   breakdown: Record<string, number>,
   type: "income" | "expenditure"
 ): Promise<{ name: string; value: number }[]> {
-  const categories = await getFinanceCategories(type, false)
+  const categories = await getFinanceCategories(tenantId, type, false)
   const labels = new Map(categories.map((c) => [c.id, c.name]))
 
   return Object.entries(breakdown)
@@ -59,13 +61,15 @@ async function buildCategoryData(
 }
 
 export async function buildIncomeCategoryData(
+  tenantId: string,
   period: FinancialPeriod
 ): Promise<{ name: string; value: number }[]> {
-  return buildCategoryData(period.incomeBreakdown, "income")
+  return buildCategoryData(tenantId, period.incomeBreakdown, "income")
 }
 
 export async function buildExpenditureCategoryData(
+  tenantId: string,
   period: FinancialPeriod
 ): Promise<{ name: string; value: number }[]> {
-  return buildCategoryData(period.expenditureBreakdown, "expenditure")
+  return buildCategoryData(tenantId, period.expenditureBreakdown, "expenditure")
 }

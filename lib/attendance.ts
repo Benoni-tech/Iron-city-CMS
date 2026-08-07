@@ -4,14 +4,17 @@ import { getLambs, getTeens, getYouth, getCongregation } from "./firestore"
 
 const ABSENCE_THRESHOLD = 3 // consecutive Sundays
 
+function tenantCollection(tenantId: string, name: string) {
+  return adminDb.collection("tenants").doc(tenantId).collection(name)
+}
+
 // Get all Sunday morning session IDs from the last N weeks
-async function getRecentSundaySessionIds(weeksBack: number): Promise<string[]> {
+async function getRecentSundaySessionIds(tenantId: string, weeksBack: number): Promise<string[]> {
   const cutoff = new Date()
   cutoff.setDate(cutoff.getDate() - weeksBack * 7)
   const cutoffStr = cutoff.toISOString().slice(0, 10)
 
-  const snap = await adminDb
-    .collection("service_sessions")
+  const snap = await tenantCollection(tenantId, "service_sessions")
     .where("serviceType", "==", "sunday_morning")
     .where("date", ">=", cutoffStr)
     .orderBy("date", "desc")
@@ -21,6 +24,7 @@ async function getRecentSundaySessionIds(weeksBack: number): Promise<string[]> {
 
 // Get set of memberIds present across a list of sessions
 async function getPresentMemberIds(
+  tenantId: string,
   sessionIds: string[],
   category: MemberCategory
 ): Promise<Set<string>> {
@@ -28,8 +32,7 @@ async function getPresentMemberIds(
   if (sessionIds.length === 0) return presentIds
 
   for (const sessionId of sessionIds) {
-    const snap = await adminDb
-      .collection("attendance_records")
+    const snap = await tenantCollection(tenantId, "attendance_records")
       .where("sessionId", "==", sessionId)
       .where("memberCategory", "==", category)
       .where("present", "==", true)
@@ -42,11 +45,11 @@ async function getPresentMemberIds(
 
 // Get last attendance date for a member
 async function getMemberLastSeen(
+  tenantId: string,
   memberId: string,
   category: MemberCategory
 ): Promise<string | null> {
-  const snap = await adminDb
-    .collection("attendance_records")
+  const snap = await tenantCollection(tenantId, "attendance_records")
     .where("memberId", "==", memberId)
     .where("memberCategory", "==", category)
     .where("present", "==", true)
@@ -60,6 +63,7 @@ async function getMemberLastSeen(
 
 // Count Sunday attendances this month for a member
 async function getMonthlyCount(
+  tenantId: string,
   memberId: string,
   category: MemberCategory
 ): Promise<number> {
@@ -68,16 +72,14 @@ async function getMonthlyCount(
     .toISOString()
     .slice(0, 10)
 
-  const sundaySessionsSnap = await adminDb
-    .collection("service_sessions")
+  const sundaySessionsSnap = await tenantCollection(tenantId, "service_sessions")
     .where("serviceType", "==", "sunday_morning")
     .where("date", ">=", startOfMonth)
     .get()
   const sessionIds = sundaySessionsSnap.docs.map((d) => d.id)
   if (sessionIds.length === 0) return 0
 
-  const snap = await adminDb
-    .collection("attendance_records")
+  const snap = await tenantCollection(tenantId, "attendance_records")
     .where("memberId", "==", memberId)
     .where("memberCategory", "==", category)
     .where("present", "==", true)
@@ -96,19 +98,19 @@ export interface AbsentMember {
 }
 
 // Main absence detection — returns members absent for ABSENCE_THRESHOLD consecutive Sundays
-export async function getAbsentMembers(): Promise<AbsentMember[]> {
-  const sessionIds = await getRecentSundaySessionIds(ABSENCE_THRESHOLD)
+export async function getAbsentMembers(tenantId: string): Promise<AbsentMember[]> {
+  const sessionIds = await getRecentSundaySessionIds(tenantId, ABSENCE_THRESHOLD)
   const absent: AbsentMember[] = []
 
   const categories: MemberCategory[] = ["lambs", "teens", "youth", "congregation"]
 
   for (const category of categories) {
-    const presentIds = await getPresentMemberIds(sessionIds, category)
+    const presentIds = await getPresentMemberIds(tenantId, sessionIds, category)
 
     let members: { id: string; firstName: string; surname: string; phone?: string; memberStatus: string }[] = []
 
     if (category === "lambs") {
-      const all = await getLambs("active")
+      const all = await getLambs(tenantId, "active")
       members = all.map((m) => ({
         id: m.id,
         firstName: m.firstName,
@@ -116,7 +118,7 @@ export async function getAbsentMembers(): Promise<AbsentMember[]> {
         memberStatus: m.memberStatus,
       }))
     } else if (category === "teens") {
-      const all = await getTeens("active")
+      const all = await getTeens(tenantId, "active")
       members = all.map((m) => ({
         id: m.id,
         firstName: m.firstName,
@@ -125,7 +127,7 @@ export async function getAbsentMembers(): Promise<AbsentMember[]> {
         memberStatus: m.memberStatus,
       }))
     } else if (category === "youth") {
-      const all = await getYouth("active")
+      const all = await getYouth(tenantId, "active")
       members = all.map((m) => ({
         id: m.id,
         firstName: m.firstName,
@@ -134,7 +136,7 @@ export async function getAbsentMembers(): Promise<AbsentMember[]> {
         memberStatus: m.memberStatus,
       }))
     } else {
-      const all = await getCongregation("active")
+      const all = await getCongregation(tenantId, "active")
       members = all.map((m) => ({
         id: m.id,
         firstName: m.firstName,
@@ -146,7 +148,7 @@ export async function getAbsentMembers(): Promise<AbsentMember[]> {
 
     for (const member of members) {
       if (!presentIds.has(member.id)) {
-        const lastSeen = await getMemberLastSeen(member.id, category)
+        const lastSeen = await getMemberLastSeen(tenantId, member.id, category)
         absent.push({
           id: member.id,
           name: `${member.firstName} ${member.surname}`,
@@ -164,31 +166,32 @@ export async function getAbsentMembers(): Promise<AbsentMember[]> {
 
 // Full attendance summary per member for reports page
 export async function getMemberAttendanceSummaries(
+  tenantId: string,
   category: MemberCategory
 ): Promise<MemberAttendanceSummary[]> {
   const summaries: MemberAttendanceSummary[] = []
-  const sessionIds = await getRecentSundaySessionIds(ABSENCE_THRESHOLD)
-  const presentIds = await getPresentMemberIds(sessionIds, category)
+  const sessionIds = await getRecentSundaySessionIds(tenantId, ABSENCE_THRESHOLD)
+  const presentIds = await getPresentMemberIds(tenantId, sessionIds, category)
 
   let members: { id: string; firstName: string; surname: string; phone?: string }[] = []
 
   if (category === "lambs") {
-    const all = await getLambs("active")
+    const all = await getLambs(tenantId, "active")
     members = all
   } else if (category === "teens") {
-    const all = await getTeens("active")
+    const all = await getTeens(tenantId, "active")
     members = all.map((m) => ({ ...m, phone: m.personalPhone }))
   } else if (category === "youth") {
-    const all = await getYouth("active")
+    const all = await getYouth(tenantId, "active")
     members = all
   } else {
-    const all = await getCongregation("active")
+    const all = await getCongregation(tenantId, "active")
     members = all
   }
 
   for (const member of members) {
-    const lastSeen = await getMemberLastSeen(member.id, category)
-    const monthlyCount = await getMonthlyCount(member.id, category)
+    const lastSeen = await getMemberLastSeen(tenantId, member.id, category)
+    const monthlyCount = await getMonthlyCount(tenantId, member.id, category)
     summaries.push({
       memberId: member.id,
       memberName: `${member.firstName} ${member.surname}`,

@@ -1,8 +1,10 @@
 import Link from "next/link"
 import { getTeens } from "@/lib/firestore"
+import { getTenantSession } from "@/lib/auth"
 
 export default async function TeensPage() {
-  const members = await getTeens()
+  const { tenantId } = await getTenantSession()
+  const members = await getTeens(tenantId)
   const active = members.filter((m) => m.memberStatus === "active").length
 
   return (

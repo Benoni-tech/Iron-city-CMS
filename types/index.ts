@@ -1,4 +1,4 @@
-export type UserRole = "super_admin" | "contributor" | "viewer"
+export type UserRole = "platform_admin" | "super_admin" | "contributor" | "viewer"
 
 export type MemberCategory = "lambs" | "teens" | "youth" | "congregation"
 
@@ -47,8 +47,6 @@ export type ProgrammeCategory =
   | "bible_study"
   | "special"
   | "annual"
-
-export type ContentStatus = "draft" | "published"
 
 // Guardian block — shared across Lambs, Teens, Youth
 export interface GuardianBlock {
@@ -219,7 +217,7 @@ export interface FinancialPeriod {
   closedBy: string
 }
 
-// Programme / event
+// Programme / event — internal planning only, no public listing in v1
 export interface Programme {
   id: string
   title: string
@@ -230,59 +228,34 @@ export interface Programme {
   description: string
   category: ProgrammeCategory
   flyer?: string
-  publishedOnSite: boolean
   status: "upcoming" | "ongoing" | "past"
   createdAt: string
 }
 
-// Sermon
-export interface Sermon {
+// Tenant — one church's account on the platform
+export interface Tenant {
   id: string
-  title: string
-  slug: string
-  speaker: string
-  series?: string
-  date: string
-  scripture: string
-  body: TipTapDocument
-  tags: string[]
-  status: ContentStatus
-  publishedAt: string | null
-  createdAt: string
-}
-
-// Blog post
-export interface BlogPost {
-  id: string
-  title: string
-  slug: string
-  excerpt: string
-  body: TipTapDocument
-  featuredImage: string
-  category: "news" | "announcement" | "devotional"
-  status: ContentStatus
-  publishedAt: string | null
-  createdAt: string
-}
-
-// Site config
-export interface SiteConfig {
   churchName: string
-  tagline: string
-  phone: string
+  region: string
+  contactEmail: string
+  contactPhone?: string
+  status: "active" | "suspended"
+  publishedInDirectory: boolean
+  createdAt: string
+  createdBy: string
+}
+
+// Lead — interest submission from the public marketing site
+export interface Lead {
+  id: string
+  churchName: string
+  contactName: string
   email: string
-  address: string
-  officeHours: string
-  mapsEmbedUrl: string
-  aboutHistory: TipTapDocument | null
-  aboutMission: string
-  aboutVision: string
-  aboutValues: string[]
-  aboutBelief: TipTapDocument | null
-  heroHeadline: string
-  heroSubline: string
-  heroImageUrl: string
-  updatedAt: string
+  phone?: string
+  region: string
+  message?: string
+  status: "new" | "contacted" | "approved" | "declined"
+  createdAt: string
 }
 
 // Session user
@@ -290,25 +263,7 @@ export interface SessionUser {
   uid: string
   email: string
   role: UserRole
-}
-
-// TipTap types
-export interface TipTapDocument {
-  type: "doc"
-  content: TipTapNode[]
-}
-
-export interface TipTapNode {
-  type: string
-  attrs?: Record<string, unknown>
-  content?: TipTapNode[]
-  marks?: TipTapMark[]
-  text?: string
-}
-
-export interface TipTapMark {
-  type: string
-  attrs?: Record<string, unknown>
+  tenantId: string | null
 }
 
 // Chart data shapes

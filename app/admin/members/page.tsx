@@ -1,8 +1,10 @@
 import Link from "next/link"
 import { getMemberCounts } from "@/lib/firestore"
+import { getTenantSession } from "@/lib/auth"
 
 export default async function MembersPage() {
-  const counts = await getMemberCounts()
+  const { tenantId } = await getTenantSession()
+  const counts = await getMemberCounts(tenantId)
   const total = Object.values(counts).reduce((a, b) => a + b, 0)
 
   const categories = [

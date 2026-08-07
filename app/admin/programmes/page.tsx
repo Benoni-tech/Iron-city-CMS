@@ -1,8 +1,10 @@
 import Link from "next/link"
 import { getAllProgrammesAdmin } from "@/lib/firestore"
+import { getTenantSession } from "@/lib/auth"
 
 export default async function ProgrammesAdminPage() {
-  const programmes = await getAllProgrammesAdmin()
+  const { tenantId } = await getTenantSession()
+  const programmes = await getAllProgrammesAdmin(tenantId)
   const upcoming = programmes.filter((p) => p.status === "upcoming").length
 
   return (

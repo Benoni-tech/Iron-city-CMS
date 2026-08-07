@@ -2,20 +2,22 @@ import { notFound } from "next/navigation"
 import { getFinancialPeriods } from "@/lib/firestore"
 import { buildIncomeCategoryData, buildExpenditureCategoryData, formatGHS } from "@/lib/finance-reports"
 import { CategoryPieChart } from "@/components/finance-chart"
+import { getTenantSession } from "@/lib/auth"
 
 interface PageProps {
   params: Promise<{ period: string }>
 }
 
 export default async function PeriodDetailPage({ params }: PageProps) {
+  const { tenantId } = await getTenantSession()
   const { period: periodId } = await params
-  const periods = await getFinancialPeriods()
+  const periods = await getFinancialPeriods(tenantId)
   const period = periods.find((p) => p.id === periodId)
 
   if (!period) notFound()
 
-  const incomeData = await buildIncomeCategoryData(period)
-  const expenditureData = await buildExpenditureCategoryData(period)
+  const incomeData = await buildIncomeCategoryData(tenantId, period)
+  const expenditureData = await buildExpenditureCategoryData(tenantId, period)
 
   return (
     <div className="p-8 max-w-5xl mx-auto">

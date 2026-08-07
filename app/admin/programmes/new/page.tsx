@@ -21,7 +21,6 @@ export default function NewProgrammePage() {
   const [location, setLocation] = useState("")
   const [description, setDescription] = useState("")
   const [category, setCategory] = useState<ProgrammeCategory>("special")
-  const [publishedOnSite, setPublishedOnSite] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
 
@@ -38,7 +37,7 @@ export default function NewProgrammePage() {
       const res = await fetch("/api/admin/programmes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, date, endDate: endDate || undefined, time, location, description, category, publishedOnSite, status: "upcoming" }),
+        body: JSON.stringify({ title, date, endDate: endDate || undefined, time, location, description, category, status: "upcoming" }),
       })
       if (!res.ok) throw new Error((await res.json()).error ?? "Save failed")
       router.push("/admin/programmes")
@@ -93,18 +92,6 @@ export default function NewProgrammePage() {
         <div>
           <label className="block text-xs font-semibold tracking-[0.08em] uppercase text-stone-500 mb-1.5">Description</label>
           <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="admin-input resize-none" rows={4} />
-        </div>
-
-        <div className="flex items-center justify-between p-4 bg-stone-50 border border-stone-200 rounded-xl">
-          <div>
-            <p className="text-sm font-medium text-stone-900">Publish on website</p>
-            <p className="text-xs text-stone-400 mt-0.5">Show on the public events page</p>
-          </div>
-          <button type="button" onClick={() => setPublishedOnSite(!publishedOnSite)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${publishedOnSite ? "bg-[#1a2744]" : "bg-stone-200"}`}
-          >
-            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${publishedOnSite ? "translate-x-6" : "translate-x-1"}`} />
-          </button>
         </div>
 
         {error && <p className="text-sm text-red-600">{error}</p>}

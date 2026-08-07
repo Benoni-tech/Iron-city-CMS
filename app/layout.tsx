@@ -17,14 +17,12 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Iron City Church of Christ",
-    template: "%s | Iron City Church of Christ",
+    default: "Church Platform",
+    template: "%s | Church Platform",
   },
   description:
-    "Iron City Church of Christ — a community of faith, worship, and service.",
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://ironcitychurchofchrist.org"
-  ),
+    "One platform for any church: membership, attendance, and finance management, plus a home on the web.",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

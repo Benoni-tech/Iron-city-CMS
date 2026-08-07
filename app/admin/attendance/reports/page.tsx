@@ -1,5 +1,6 @@
 import { getWeeklyAttendanceStats } from "@/lib/firestore"
 import { getAbsentMembers } from "@/lib/attendance"
+import { getTenantSession } from "@/lib/auth"
 import AttendanceChart from "@/components/attendance-chart"
 import AbsenceReport from "@/components/absence-report"
 import type { AttendanceChartPoint, ServiceType } from "@/types"
@@ -35,9 +36,10 @@ function buildWeeklyChartData(
 }
 
 export default async function AttendanceReportsPage() {
+  const { tenantId } = await getTenantSession()
   const [weeklyStats, absentMembers] = await Promise.all([
-    getWeeklyAttendanceStats(8),
-    getAbsentMembers(),
+    getWeeklyAttendanceStats(tenantId, 8),
+    getAbsentMembers(tenantId),
   ])
 
   const chartData = buildWeeklyChartData(weeklyStats)

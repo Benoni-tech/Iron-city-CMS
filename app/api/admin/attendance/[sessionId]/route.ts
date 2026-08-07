@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
-import { requireContributor } from "@/lib/auth"
+import { requireTenantContributor } from "@/lib/auth"
 import { saveAttendanceBatch } from "@/lib/firestore"
 
 const recordSchema = z.object({
@@ -21,7 +21,7 @@ interface Params {
 export async function POST(req: NextRequest, { params }: Params) {
   let user
   try {
-    user = await requireContributor()
+    user = await requireTenantContributor()
   } catch {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
   }
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest, { params }: Params) {
   }
 
   try {
-    await saveAttendanceBatch(sessionId, result.data.records, user.uid)
+    await saveAttendanceBatch(user.tenantId, sessionId, result.data.records, user.uid)
     return NextResponse.json({ success: true })
   } catch (err) {
     console.error("Save attendance error:", err)

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
-import { requireSuperAdmin } from "@/lib/auth"
+import { requireTenantSuperAdmin } from "@/lib/auth"
 import { generateMonthlyPeriod } from "@/lib/finance-reports"
 import { revalidatePath } from "next/cache"
 
@@ -11,7 +11,7 @@ const schema = z.object({
 
 export async function POST(req: NextRequest) {
   let user
-  try { user = await requireSuperAdmin() } catch { return NextResponse.json({ error: "Unauthorized" }, { status: 403 }) }
+  try { user = await requireTenantSuperAdmin() } catch { return NextResponse.json({ error: "Unauthorized" }, { status: 403 }) }
 
   let body: unknown
   try { body = await req.json() } catch { return NextResponse.json({ error: "Invalid request" }, { status: 400 }) }
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const period = await generateMonthlyPeriod(result.data.year, result.data.month, user.uid)
+    const period = await generateMonthlyPeriod(user.tenantId, result.data.year, result.data.month, user.uid)
     revalidatePath("/admin/finance")
     revalidatePath("/admin/finance/reports")
     return NextResponse.json({ period })

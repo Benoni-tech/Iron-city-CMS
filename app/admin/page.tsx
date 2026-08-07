@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { redirect } from "next/navigation"
 import {
   Baby,
   BookOpen,
@@ -141,6 +142,8 @@ function StatCard({
 export default async function AdminDashboard() {
   const user = await getSessionUser()
   if (!user) return null
+  if (user.role === "platform_admin") redirect("/admin/leads")
+  const tenantId = user.tenantId!
 
   const isSuperAdmin = user.role === "super_admin"
   const isViewer = user.role === "viewer"
@@ -150,12 +153,12 @@ export default async function AdminDashboard() {
 
   const [counts, previousCounts, sessions, weeklyStats, upcoming, absentMembers] =
     await Promise.all([
-      getMemberCounts(),
-      getMemberCountsAsOf(startOfThisMonth),
-      getServiceSessions(20),
-      getWeeklyAttendanceStats(8),
-      getUpcomingProgrammes(3),
-      isViewer ? Promise.resolve([]) : getAbsentMembers(),
+      getMemberCounts(tenantId),
+      getMemberCountsAsOf(tenantId, startOfThisMonth),
+      getServiceSessions(tenantId, 20),
+      getWeeklyAttendanceStats(tenantId, 8),
+      getUpcomingProgrammes(tenantId, 3),
+      isViewer ? Promise.resolve([]) : getAbsentMembers(tenantId),
     ])
 
   const totalMembers = Object.values(counts).reduce((a, b) => a + b, 0)
@@ -165,7 +168,7 @@ export default async function AdminDashboard() {
     ? await Promise.all(
         [5, 4, 3, 2, 1, 0].map(async (offset) => {
           const d = new Date(now.getFullYear(), now.getMonth() - offset, 1)
-          const records = await getFinancialRecordsByMonth(d.getFullYear(), d.getMonth() + 1)
+          const records = await getFinancialRecordsByMonth(tenantId, d.getFullYear(), d.getMonth() + 1)
           const income = records
             .filter((r) => r.type === "income")
             .reduce((sum, r) => sum + r.amount, 0)

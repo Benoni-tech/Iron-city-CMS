@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from "next/server"
-import { requireContributor } from "@/lib/auth"
+import { requireTenantContributor } from "@/lib/auth"
 import { getLambs, createLamb } from "@/lib/firestore"
 
 export async function GET() {
-  try { await requireContributor() } catch { return NextResponse.json({ error: "Unauthorized" }, { status: 403 }) }
-  const members = await getLambs()
+  let user
+  try { user = await requireTenantContributor() } catch { return NextResponse.json({ error: "Unauthorized" }, { status: 403 }) }
+  const members = await getLambs(user.tenantId)
   return NextResponse.json({ members })
 }
 
 export async function POST(req: NextRequest) {
-  try { await requireContributor() } catch { return NextResponse.json({ error: "Unauthorized" }, { status: 403 }) }
+  let user
+  try { user = await requireTenantContributor() } catch { return NextResponse.json({ error: "Unauthorized" }, { status: 403 }) }
   const body = await req.json()
-  const id = await createLamb(body)
+  const id = await createLamb(user.tenantId, body)
   return NextResponse.json({ id }, { status: 201 })
 }

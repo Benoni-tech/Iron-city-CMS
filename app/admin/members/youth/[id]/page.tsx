@@ -2,15 +2,17 @@ import { notFound } from "next/navigation"
 import YouthForm from "@/components/member-form-youth"
 import { getYouthById, getLinkedChildren } from "@/lib/firestore"
 import FamilyTreeView from "@/components/family-tree-view"
+import { getTenantSession } from "@/lib/auth"
 
 interface PageProps { params: Promise<{ id: string }> }
 
 export default async function EditYouthPage({ params }: PageProps) {
+  const { tenantId } = await getTenantSession()
   const { id } = await params
-  const member = await getYouthById(id)
+  const member = await getYouthById(tenantId, id)
   if (!member) notFound()
 
-  const children = await getLinkedChildren(id)
+  const children = await getLinkedChildren(tenantId, id)
 
   return (
     <div className="p-8 max-w-4xl mx-auto">

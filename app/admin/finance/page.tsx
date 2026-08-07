@@ -1,12 +1,14 @@
 import Link from "next/link"
 import { getFinancialRecords, getFinancialPeriods, getFinanceCategories } from "@/lib/firestore"
 import { formatGHS } from "@/lib/finance-reports"
+import { getTenantSession } from "@/lib/auth"
 
 export default async function FinanceOverviewPage() {
+  const { tenantId } = await getTenantSession()
   const [recentRecords, periods, allCategories] = await Promise.all([
-    getFinancialRecords(undefined, 15),
-    getFinancialPeriods(),
-    getFinanceCategories(undefined, false),
+    getFinancialRecords(tenantId, undefined, 15),
+    getFinancialPeriods(tenantId),
+    getFinanceCategories(tenantId, undefined, false),
   ])
 
   const now = new Date()

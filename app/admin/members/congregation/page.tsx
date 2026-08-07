@@ -1,8 +1,10 @@
 import Link from "next/link"
 import { getCongregation } from "@/lib/firestore"
+import { getTenantSession } from "@/lib/auth"
 
 export default async function CongregationPage() {
-  const members = await getCongregation()
+  const { tenantId } = await getTenantSession()
+  const members = await getCongregation(tenantId)
   const active = members.filter((m) => m.memberStatus === "active").length
 
   return (

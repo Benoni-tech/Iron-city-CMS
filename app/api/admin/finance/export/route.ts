@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
-import { requireSuperAdmin } from "@/lib/auth"
-import { getFinancialRecordsByDateRange, getFinanceCategories, getSiteConfig } from "@/lib/firestore"
+import { requireTenantSuperAdmin } from "@/lib/auth"
+import { getFinancialRecordsByDateRange, getFinanceCategories } from "@/lib/firestore"
+import { getTenantById } from "@/lib/platform"
 import { buildFinanceWorkbook, resolveThisWeekRange, financeExportFilename } from "@/lib/finance-export"
 
 const schema = z
@@ -16,7 +17,7 @@ const schema = z
 
 export async function GET(req: NextRequest) {
   let user
-  try { user = await requireSuperAdmin() } catch { return NextResponse.json({ error: "Unauthorized" }, { status: 403 }) }
+  try { user = await requireTenantSuperAdmin() } catch { return NextResponse.json({ error: "Unauthorized" }, { status: 403 }) }
 
   const { searchParams } = new URL(req.url)
   const result = schema.safeParse({
@@ -36,15 +37,15 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Start date must be before end date" }, { status: 422 })
   }
 
-  const [records, categories, siteConfig] = await Promise.all([
-    getFinancialRecordsByDateRange(range.startDate, range.endDate),
-    getFinanceCategories(undefined, false),
-    getSiteConfig(),
+  const [records, categories, tenant] = await Promise.all([
+    getFinancialRecordsByDateRange(user.tenantId, range.startDate, range.endDate),
+    getFinanceCategories(user.tenantId, undefined, false),
+    getTenantById(user.tenantId),
   ])
 
   const buffer = await buildFinanceWorkbook(records, categories, {
-    churchName: siteConfig?.churchName ?? "Iron City Church of Christ",
-    churchAddress: siteConfig?.address ?? "",
+    churchName: tenant?.churchName ?? "",
+    churchAddress: "",
     range,
     generatedByEmail: user.email,
   })

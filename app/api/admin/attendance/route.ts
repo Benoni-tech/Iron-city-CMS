@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
-import { requireContributor } from "@/lib/auth"
+import { requireTenantContributor } from "@/lib/auth"
 import { createServiceSession } from "@/lib/firestore"
 
 const schema = z.object({
@@ -20,7 +20,7 @@ const schema = z.object({
 export async function POST(req: NextRequest) {
   let user
   try {
-    user = await requireContributor()
+    user = await requireTenantContributor()
   } catch {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
   }
@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const id = await createServiceSession(
+      user.tenantId,
       {
         serviceType: result.data.serviceType,
         date: result.data.date,

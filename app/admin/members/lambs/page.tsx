@@ -1,8 +1,10 @@
 import Link from "next/link"
 import { getLambs } from "@/lib/firestore"
+import { getTenantSession } from "@/lib/auth"
 
 export default async function LambsPage() {
-  const members = await getLambs()
+  const { tenantId } = await getTenantSession()
+  const members = await getLambs(tenantId)
   const active = members.filter((m) => m.memberStatus === "active").length
 
   return (

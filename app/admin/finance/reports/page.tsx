@@ -3,9 +3,11 @@ import { buildFinanceChartData } from "@/lib/finance-reports"
 import { IncomeExpenditureChart } from "@/components/finance-chart"
 import CloseMonthButton from "@/components/close-month-button"
 import FinanceExportPanel from "@/components/finance-export-panel"
+import { getTenantSession } from "@/lib/auth"
 
 export default async function FinanceReportsPage() {
-  const periods = await getFinancialPeriods()
+  const { tenantId } = await getTenantSession()
+  const periods = await getFinancialPeriods(tenantId)
   const chartData = buildFinanceChartData(periods)
 
   return (

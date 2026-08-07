@@ -71,13 +71,12 @@ function LoginForm() {
 
           <div>
             <h2 className="text-white font-display font-bold text-3xl leading-tight mb-4">
-              Serving One Church,
+              One Portal,
               <br />
               Every Ministry
             </h2>
             <p className="text-white/50 text-sm leading-relaxed max-w-xs">
-              Manage members, events, and giving records for Iron City Church
-              of Christ, all from one staff portal.
+              Manage your church&apos;s members, attendance, and finances, all from one staff portal.
             </p>
           </div>
 
@@ -96,10 +95,10 @@ function LoginForm() {
             <p className="text-xs text-stone-500">
               Need access?{" "}
               <a
-                href="mailto:office@ironcitycoc.org"
+                href="/contact"
                 className="font-semibold text-[#1a2744] underline underline-offset-2"
               >
-                Contact the office
+                Contact us
               </a>
             </p>
           </div>
@@ -187,7 +186,7 @@ function LoginForm() {
           </div>
 
           <div className="flex items-center justify-between text-[11px] text-stone-400 pt-8">
-            <p>Copyright {new Date().getFullYear()} Iron City Church of Christ</p>
+            <p>Copyright {new Date().getFullYear()} Church Platform</p>
             <div className="flex gap-4">
               <a href="/privacy" className="hover:text-stone-600">Privacy Policy</a>
               <a href="/support" className="hover:text-stone-600">Support</a>

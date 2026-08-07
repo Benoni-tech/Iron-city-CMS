@@ -29,7 +29,6 @@ export default function EditProgrammePage({ params }: PageProps) {
   const [location, setLocation] = useState("")
   const [description, setDescription] = useState("")
   const [category, setCategory] = useState<ProgrammeCategory>("special")
-  const [publishedOnSite, setPublishedOnSite] = useState(true)
   const [status, setStatus] = useState<Programme["status"]>("upcoming")
 
   useEffect(() => {
@@ -40,7 +39,7 @@ export default function EditProgrammePage({ params }: PageProps) {
         .then(({ programme: p }: { programme: Programme }) => {
           setTitle(p.title); setDate(p.date); setEndDate(p.endDate ?? "")
           setTime(p.time); setLocation(p.location); setDescription(p.description)
-          setCategory(p.category); setPublishedOnSite(p.publishedOnSite); setStatus(p.status)
+          setCategory(p.category); setStatus(p.status)
         })
         .finally(() => setLoading(false))
     })
@@ -52,7 +51,7 @@ export default function EditProgrammePage({ params }: PageProps) {
       const res = await fetch(`/api/admin/programmes/${progId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, date, endDate: endDate || undefined, time, location, description, category, publishedOnSite, status }),
+        body: JSON.stringify({ title, date, endDate: endDate || undefined, time, location, description, category, status }),
       })
       if (!res.ok) throw new Error((await res.json()).error ?? "Save failed")
       setSuccess("Saved"); setTimeout(() => setSuccess(""), 2000)
@@ -125,13 +124,6 @@ export default function EditProgrammePage({ params }: PageProps) {
         <div>
           <label className="block text-xs font-semibold tracking-[0.08em] uppercase text-stone-500 mb-1.5">Description</label>
           <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="admin-input resize-none" rows={4} />
-        </div>
-        <div className="flex items-center justify-between p-4 bg-stone-50 border border-stone-200 rounded-xl">
-          <p className="text-sm font-medium text-stone-900">Published on website</p>
-          <button type="button" onClick={() => setPublishedOnSite(!publishedOnSite)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${publishedOnSite ? "bg-[#1a2744]" : "bg-stone-200"}`}>
-            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${publishedOnSite ? "translate-x-6" : "translate-x-1"}`} />
-          </button>
         </div>
         <div className="border-t border-stone-100 pt-5">
           <button onClick={handleDelete} className="admin-btn-danger">Delete this programme</button>

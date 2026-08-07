@@ -1,12 +1,14 @@
 import { notFound } from "next/navigation"
 import TeenForm from "@/components/member-form-teens"
 import { getTeenById } from "@/lib/firestore"
+import { getTenantSession } from "@/lib/auth"
 
 interface PageProps { params: Promise<{ id: string }> }
 
 export default async function EditTeenPage({ params }: PageProps) {
+  const { tenantId } = await getTenantSession()
   const { id } = await params
-  const teen = await getTeenById(id)
+  const teen = await getTeenById(tenantId, id)
   if (!teen) notFound()
 
   return (

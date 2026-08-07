@@ -7,6 +7,7 @@ import {
   getCongregation,
   getAttendanceForSession,
 } from "@/lib/firestore"
+import { getTenantSession } from "@/lib/auth"
 import AttendanceSheet from "@/components/attendance-sheet"
 import { SERVICE_TYPE_LABELS } from "@/types"
 import type { MemberCategory, MemberRef } from "@/types"
@@ -16,16 +17,17 @@ interface PageProps {
 }
 
 export default async function SessionAttendancePage({ params }: PageProps) {
+  const { tenantId } = await getTenantSession()
   const { sessionId } = await params
-  const session = await getServiceSessionById(sessionId)
+  const session = await getServiceSessionById(tenantId, sessionId)
   if (!session) notFound()
 
   const [lambs, teens, youth, congregation, existingRecords] = await Promise.all([
-    getLambs("active"),
-    getTeens("active"),
-    getYouth("active"),
-    getCongregation("active"),
-    getAttendanceForSession(sessionId),
+    getLambs(tenantId, "active"),
+    getTeens(tenantId, "active"),
+    getYouth(tenantId, "active"),
+    getCongregation(tenantId, "active"),
+    getAttendanceForSession(tenantId, sessionId),
   ])
 
   const membersByCategory: Record<MemberCategory, MemberRef[]> = {

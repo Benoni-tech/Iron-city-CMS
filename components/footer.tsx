@@ -4,14 +4,12 @@ export default function Footer() {
   return (
     <footer className="bg-[#1a2744] text-white">
       <div className="max-w-6xl mx-auto px-6 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           <div>
-            <p className="font-display font-bold text-xl mb-1">Iron City</p>
-            <p className="text-[11px] font-ui tracking-[0.18em] uppercase text-white/60 mb-4">
-              Church of Christ
-            </p>
-            <p className="text-white/70 text-sm leading-relaxed">
-              A community of faith, worship, and service.
+            <p className="font-display font-bold text-xl mb-4">Church Platform</p>
+            <p className="text-white/70 text-sm leading-relaxed max-w-xs">
+              One place for any church to manage membership, attendance, and finances — and get a home
+              on the web.
             </p>
           </div>
 
@@ -22,10 +20,9 @@ export default function Footer() {
             <ul className="space-y-2">
               {[
                 { href: "/", label: "Home" },
-                { href: "/about", label: "About Us" },
-                { href: "/sermons", label: "Sermons" },
-                { href: "/events", label: "Events" },
+                { href: "/directory", label: "Directory" },
                 { href: "/contact", label: "Contact" },
+                { href: "/#get-started", label: "Register Interest" },
               ].map((link) => (
                 <li key={link.href}>
                   <Link
@@ -38,23 +35,11 @@ export default function Footer() {
               ))}
             </ul>
           </div>
-
-          <div>
-            <p className="text-[11px] font-ui font-semibold tracking-[0.12em] uppercase text-[#c9a84c] mb-4">
-              Service Times
-            </p>
-            <ul className="space-y-2 text-sm text-white/70">
-              <li>Sunday Morning — 9:00 AM</li>
-              <li>Sunday Evening — 5:00 PM</li>
-              <li>Monday Bible Class — 6:30 PM</li>
-              <li>Wednesday Prayer — 6:30 PM</li>
-            </ul>
-          </div>
         </div>
 
         <div className="border-t border-white/10 mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-white/40 text-xs">
-            &copy; {new Date().getFullYear()} Iron City Church of Christ. All rights reserved.
+            &copy; {new Date().getFullYear()} Church Platform. All rights reserved.
           </p>
           <Link
             href="/login"

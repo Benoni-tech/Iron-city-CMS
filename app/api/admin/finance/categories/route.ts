@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
-import { requireSuperAdmin } from "@/lib/auth"
+import { requireTenantSuperAdmin } from "@/lib/auth"
 import { getFinanceCategories, createFinanceCategory } from "@/lib/firestore"
 import { generateSlug } from "@/lib/slug"
 
@@ -10,13 +10,15 @@ const schema = z.object({
 })
 
 export async function GET(req: NextRequest) {
-  try { await requireSuperAdmin() } catch { return NextResponse.json({ error: "Unauthorized" }, { status: 403 }) }
+  let user
+  try { user = await requireTenantSuperAdmin() } catch { return NextResponse.json({ error: "Unauthorized" }, { status: 403 }) }
 
   const { searchParams } = new URL(req.url)
   const type = searchParams.get("type")
   const activeOnly = searchParams.get("activeOnly") !== "false"
 
   const categories = await getFinanceCategories(
+    user.tenantId,
     type === "income" || type === "expenditure" ? type : undefined,
     activeOnly
   )
@@ -25,7 +27,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   let user
-  try { user = await requireSuperAdmin() } catch { return NextResponse.json({ error: "Unauthorized" }, { status: 403 }) }
+  try { user = await requireTenantSuperAdmin() } catch { return NextResponse.json({ error: "Unauthorized" }, { status: 403 }) }
 
   let body: unknown
   try { body = await req.json() } catch { return NextResponse.json({ error: "Invalid request" }, { status: 400 }) }
@@ -35,13 +37,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Validation failed", issues: result.error.flatten().fieldErrors }, { status: 422 })
   }
 
-  const existing = await getFinanceCategories(result.data.type, false)
+  const existing = await getFinanceCategories(user.tenantId, result.data.type, false)
   const id = generateSlug(result.data.name)
   if (existing.some((c) => c.id === id)) {
     return NextResponse.json({ error: "A category with that name already exists" }, { status: 409 })
   }
 
-  const categoryId = await createFinanceCategory({
+  const categoryId = await createFinanceCategory(user.tenantId, {
     name: result.data.name,
     type: result.data.type,
     createdBy: user.uid,

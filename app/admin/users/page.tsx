@@ -3,20 +3,22 @@
 import { useState } from "react"
 import type { UserRole } from "@/types"
 
+type TenantUserRole = Exclude<UserRole, "platform_admin">
+
 interface AdminUser {
   uid: string
   email: string
-  role: UserRole
+  role: TenantUserRole
   displayName?: string
 }
 
-const roleLabels: Record<UserRole, string> = {
+const roleLabels: Record<TenantUserRole, string> = {
   super_admin: "Super Admin",
   contributor: "Contributor",
   viewer: "Viewer",
 }
 
-const roleColors: Record<UserRole, string> = {
+const roleColors: Record<TenantUserRole, string> = {
   super_admin: "bg-red-100 text-red-800",
   contributor: "bg-blue-100 text-blue-800",
   viewer: "bg-stone-100 text-stone-600",
@@ -25,7 +27,7 @@ const roleColors: Record<UserRole, string> = {
 export default function UsersAdminPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [role, setRole] = useState<UserRole>("contributor")
+  const [role, setRole] = useState<TenantUserRole>("contributor")
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
@@ -62,7 +64,7 @@ export default function UsersAdminPage() {
         <p className="text-sm text-amber-800 font-medium">Role permissions</p>
         <ul className="text-xs text-amber-700 mt-2 space-y-1">
           <li><strong>Super Admin</strong> — full access including finance, site config, and user management</li>
-          <li><strong>Contributor</strong> — membership, attendance, programmes, sermons, and blog</li>
+          <li><strong>Contributor</strong> — membership, attendance, and programmes</li>
           <li><strong>Viewer</strong> — read-only access to reports and the dashboard</li>
         </ul>
       </div>
@@ -102,7 +104,7 @@ export default function UsersAdminPage() {
             <label className="block text-xs font-semibold tracking-[0.08em] uppercase text-stone-500 mb-1.5">
               Role
             </label>
-            <select value={role} onChange={(e) => setRole(e.target.value as UserRole)} className="admin-input">
+            <select value={role} onChange={(e) => setRole(e.target.value as TenantUserRole)} className="admin-input">
               <option value="contributor">Contributor</option>
               <option value="viewer">Viewer</option>
               <option value="super_admin">Super Admin</option>
