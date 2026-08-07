@@ -16,6 +16,7 @@ export default function TenantsPage() {
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
+  const [credentials, setCredentials] = useState<{ email: string; password: string } | null>(null)
 
   function loadTenants() {
     fetch("/api/admin/tenants")
@@ -34,6 +35,7 @@ export default function TenantsPage() {
     }
     setError("")
     setSuccess("")
+    setCredentials(null)
     setCreating(true)
     try {
       const res = await fetch("/api/admin/tenants", {
@@ -43,7 +45,14 @@ export default function TenantsPage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? "Failed to create tenant")
-      setSuccess(data.warning ?? `${churchName} created — invite sent to ${adminEmail}`)
+      if (data.warning) {
+        setSuccess(data.warning)
+      } else if (data.emailed) {
+        setSuccess(`${churchName} created — invite sent to ${adminEmail}`)
+      } else {
+        setSuccess(`${churchName} created — email wasn't sent, so share this login with them yourself:`)
+        setCredentials({ email: data.adminEmail, password: data.tempPassword })
+      }
       setChurchName(""); setRegion(""); setContactEmail(""); setContactPhone(""); setAdminEmail("")
       loadTenants()
     } catch (err) {
@@ -104,6 +113,12 @@ export default function TenantsPage() {
 
           {error && <p className="text-sm text-red-600">{error}</p>}
           {success && <p className="text-sm text-green-600">{success}</p>}
+          {credentials && (
+            <div className="bg-stone-50 border border-stone-200 rounded-lg p-3 text-xs font-mono text-stone-700 space-y-1">
+              <p>Email: {credentials.email}</p>
+              <p>Password: {credentials.password}</p>
+            </div>
+          )}
 
           <button type="submit" disabled={creating} className="admin-btn-primary">
             {creating ? "Creating..." : "Create Tenant"}

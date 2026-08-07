@@ -44,7 +44,6 @@ export async function POST(req: NextRequest) {
   try {
     const userRecord = await adminAuth.createUser({ email: adminEmail, password: tempPassword })
     await adminAuth.setCustomUserClaims(userRecord.uid, { role: "super_admin", tenantId })
-    await sendTenantInviteEmail({ toEmail: adminEmail, churchName, tempPassword })
   } catch (err) {
     const firebaseErr = err as { code?: string }
     if (firebaseErr.code === "auth/email-already-exists") {
@@ -60,5 +59,15 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  return NextResponse.json({ id: tenantId }, { status: 201 })
+  // Best-effort — the account and its password are returned below either way,
+  // so a missing/misconfigured Resend key never strands the admin without
+  // a way to sign in.
+  let emailed = false
+  try {
+    emailed = await sendTenantInviteEmail({ toEmail: adminEmail, churchName, tempPassword })
+  } catch (err) {
+    console.error("Tenant invite email failed (account was still created):", err)
+  }
+
+  return NextResponse.json({ id: tenantId, adminEmail, tempPassword, emailed }, { status: 201 })
 }

@@ -72,13 +72,15 @@ interface TenantInviteParams {
   tempPassword: string
 }
 
-export async function sendTenantInviteEmail(data: TenantInviteParams): Promise<void> {
-  if (!process.env.RESEND_API_KEY) return // account is already created either way
+// Returns whether the email actually sent, so the caller can fall back to
+// showing the temp password in the UI instead of silently losing it.
+export async function sendTenantInviteEmail(data: TenantInviteParams): Promise<boolean> {
+  if (!process.env.RESEND_API_KEY) return false
 
   const resend = new Resend(process.env.RESEND_API_KEY)
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ""
 
-  await resend.emails.send({
+  const { error } = await resend.emails.send({
     from: "Platform <onboarding@resend.dev>",
     to: data.toEmail,
     subject: `${data.churchName} is set up — sign in to get started`,
@@ -89,4 +91,6 @@ export async function sendTenantInviteEmail(data: TenantInviteParams): Promise<v
       <p>Sign in${appUrl ? ` at <a href="${appUrl}/login">${appUrl}/login</a>` : ""} and change your password from account settings.</p>
     `,
   })
+
+  return !error
 }
